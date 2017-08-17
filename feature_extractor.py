@@ -47,6 +47,25 @@ class Extractor:
             score_list.append(score)
         final_score = sum(score_list)/len(score_list)
         return final_score
+
+    def search_face(self,probe_fea,ID_feas,thresh=0.55):
+        score_dict = {}
+        person_list = ID_feas.keys()
+        person_list.sort()
+        for person in person_list:
+            ID_fea = ID_feas[person]
+            temp_fea = np.concatenate((ID_fea,probe_fea),axis=0)
+            score = self.cal_score(temp_fea)
+            score_dict[person] = score
+        temp_target = max(score_dict,key=lambda x:score_dict[x])
+        score = score_dict[temp_target]
+        if not score<thresh:
+            return temp_target
+        else:
+            return None
+
+
+
             
     
     
