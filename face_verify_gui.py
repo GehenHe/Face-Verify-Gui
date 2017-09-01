@@ -165,35 +165,8 @@ class Ui_Face_Verification(object):
         self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.verticalLayout_5.addWidget(self.label_4)
-        self.verticalLayoutWidget_6 = QtGui.QWidget(Face_Verification)
-        self.verticalLayoutWidget_6.setGeometry(QtCore.QRect(780, 510, 160, 80))
-        self.verticalLayoutWidget_6.setObjectName(_fromUtf8("verticalLayoutWidget_6"))
-        self.verticalLayout_6 = QtGui.QVBoxLayout(self.verticalLayoutWidget_6)
-        self.verticalLayout_6.setMargin(0)
-        self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
-        self.Open_ID = QtGui.QPushButton(self.verticalLayoutWidget_6)
-        self.Open_ID.setObjectName(_fromUtf8("Open_ID"))
-        self.verticalLayout_6.addWidget(self.Open_ID)
-        self.verticalLayoutWidget_7 = QtGui.QWidget(Face_Verification)
-        self.verticalLayoutWidget_7.setGeometry(QtCore.QRect(250, 610, 160, 31))
-        self.verticalLayoutWidget_7.setObjectName(_fromUtf8("verticalLayoutWidget_7"))
-        self.verticalLayout_7 = QtGui.QVBoxLayout(self.verticalLayoutWidget_7)
-        self.verticalLayout_7.setMargin(0)
-        self.verticalLayout_7.setObjectName(_fromUtf8("verticalLayout_7"))
-        self.Verify = QtGui.QPushButton(self.verticalLayoutWidget_7)
-        self.Verify.setObjectName(_fromUtf8("Verify"))
-        self.verticalLayout_7.addWidget(self.Verify)
-        self.verticalLayoutWidget_8 = QtGui.QWidget(Face_Verification)
-        self.verticalLayoutWidget_8.setGeometry(QtCore.QRect(40, 610, 160, 31))
-        self.verticalLayoutWidget_8.setObjectName(_fromUtf8("verticalLayoutWidget_8"))
-        self.verticalLayout_8 = QtGui.QVBoxLayout(self.verticalLayoutWidget_8)
-        self.verticalLayout_8.setMargin(0)
-        self.verticalLayout_8.setObjectName(_fromUtf8("verticalLayout_8"))
-        self.add_to_id_query = QtGui.QPushButton(self.verticalLayoutWidget_8)
-        self.add_to_id_query.setObjectName(_fromUtf8("add_to_id_query"))
-        self.verticalLayout_8.addWidget(self.add_to_id_query)
         self.verticalLayoutWidget_9 = QtGui.QWidget(Face_Verification)
-        self.verticalLayoutWidget_9.setGeometry(QtCore.QRect(460, 610, 160, 31))
+        self.verticalLayoutWidget_9.setGeometry(QtCore.QRect(400, 610, 160, 31))
         self.verticalLayoutWidget_9.setObjectName(_fromUtf8("verticalLayoutWidget_9"))
         self.verticalLayout_9 = QtGui.QVBoxLayout(self.verticalLayoutWidget_9)
         self.verticalLayout_9.setMargin(0)
@@ -202,7 +175,7 @@ class Ui_Face_Verification(object):
         self.ID_search.setObjectName(_fromUtf8("ID_search"))
         self.verticalLayout_9.addWidget(self.ID_search)
         self.verticalLayoutWidget_10 = QtGui.QWidget(Face_Verification)
-        self.verticalLayoutWidget_10.setGeometry(QtCore.QRect(660, 610, 160, 31))
+        self.verticalLayoutWidget_10.setGeometry(QtCore.QRect(610, 610, 160, 31))
         self.verticalLayoutWidget_10.setObjectName(_fromUtf8("verticalLayoutWidget_10"))
         self.verticalLayout_10 = QtGui.QVBoxLayout(self.verticalLayoutWidget_10)
         self.verticalLayout_10.setMargin(0)
@@ -224,14 +197,13 @@ class Ui_Face_Verification(object):
         self.label_3.setText(_translate("Face_Verification", "人证自动核验系统", None))
         self.label_2.setText(_translate("Face_Verification", "照片信息", None))
         self.label_4.setText(_translate("Face_Verification", "功能选项", None))
-        self.Open_ID.setText(_translate("Face_Verification", "打开身份证阅读器", None))
-        self.Verify.setText(_translate("Face_Verification", "人证验证", None))
-        self.add_to_id_query.setText(_translate("Face_Verification", "添加到比对库", None))
         self.ID_search.setText(_translate("Face_Verification", "身份检索", None))
         self.clear.setText(_translate("Face_Verification", "清空", None))
-        self.Open_ID.clicked.connect(self.Open_ID_Reader)
-        self.add_to_id_query.clicked.connect(self.add_to_lib)
-        self.Verify.clicked.connect(self.verify)
+        self.Open_ID_Reader()
+        self.start_verify()
+        # self.Open_ID.clicked.connect(self.Open_ID_Reader)
+        # self.add_to_id_query.clicked.connect(self.add_to_lib)
+        # self.Verify.clicked.connect(self.verify)
         self.ID_search.clicked.connect(self.search_ID)
         self.clear.clicked.connect(self.all_clean)
         self.start_read_ID()
@@ -295,29 +267,30 @@ class Ui_Face_Verification(object):
         web.setModal(False)
         web.setWindowTitle(_translate("Face_Verification", "比对结果", None))
         bbox = self.naivedlib.getLargestFaceBoundingBox(self.probe_image)
-        try:
-            if bbox is not None:
-                left_eye, right_eye = self.naivedlib.get_eyes(self.probe_image, bbox)
-                crop_image = crop_rotate_v2(self.probe_image[:, :, ::-1], left_eye, right_eye,
-                                            bbox.width() * 1.0)
-                flip_image = cv2.flip(crop_image.copy(), 1)
-                crop_image = proc_img(crop_image, is_whiten=False)
-                flip_image = proc_img(flip_image, is_whiten=False)
-                self.query.append(crop_image[0])
-                self.query.append(flip_image[0])
-                prob_image = np.asarray(self.query)
-                fea_house = self.extractor.extract_feature(im_arr=prob_image)
-                target = self.extractor.search_face(fea_house,self.ID_lib)
-                if target is not None:
-                    self.id_image = cv2.imread("./card/ID_img/{}.bmp".format(target))
-                    self.display_id_image()
-                    web.write_result("检索结果: {}".format(self.ID_name[target].encode('utf-8')), 'black')
-                else:
-                    web.write_result("不在检索库中", 'red')
-                web.exec_()
-        except:
-            web.write_result("检索库为空", 'red')
+        # try:
+        if bbox is not None:
+            left_eye, right_eye = self.naivedlib.get_eyes(self.probe_image, bbox)
+            crop_image = crop_rotate_v2(self.probe_image[:, :, ::-1], left_eye, right_eye,
+                                        bbox.width() * 1.0)
+            flip_image = cv2.flip(crop_image.copy(), 1)
+            crop_image = proc_img(crop_image, is_whiten=False)
+            flip_image = proc_img(flip_image, is_whiten=False)
+            self.query.append(crop_image[0])
+            self.query.append(flip_image[0])
+            prob_image = np.asarray(self.query)
+            fea_house = self.extractor.extract_feature(im_arr=prob_image)
+            target = self.extractor.search_face(fea_house,self.ID_lib)
+            if target is not None:
+                self.id_image = cv2.imread("./card/ID_img/{}.bmp".format(target))
+                self.display_id_image()
+                name = self.ID_name[target]
+                web.write_result("检索结果: {}".format(name), 'black')
+            else:
+                web.write_result("不在检索库中", 'red')
             web.exec_()
+        # except:
+        #     web.write_result("检索库为空", 'red')
+        #     web.exec_()
 
     def add_to_lib(self):
         web = Web_Browser()
@@ -350,6 +323,7 @@ class Ui_Face_Verification(object):
             image = cv2.imread('./card/zp.bmp')
             self.id_image = image.copy()
             self.display_id_image()
+            self.add_to_lib()
             if self.id_image is not None:
                 ID_bbox = self.naivedlib.getLargestFaceBoundingBox(self.id_image)
                 # if ID_bbox is not None:
@@ -386,8 +360,9 @@ class Ui_Face_Verification(object):
             else:
                 pass
         except:
-            web.write_result("未检测到身份证信息", 'red')
-            web.exec_()
+            # web.write_result("未检测到身份证信息", 'red')
+            # web.exec_()
+            pass
 
 
     def read_ID_image(self):
@@ -419,10 +394,16 @@ class Ui_Face_Verification(object):
         self.timer.timeout.connect(self.read_ID_image)
         self.timer.start(1)
 
+    def start_verify(self):
+        self.timer3 = QtCore.QTime()
+        self.timer.timeout.connect(self.verify)
+        self.timer.start(1)
+
 
     def Open_ID_Reader(self):
         # os.system('C:\\Users\\Gehen\\Desktop\\Face_Verify\\card\\ZKIDCardReader.exe')
-        subprocess.Popen('C:\\Users\\Gehen\\Desktop\\Face_Verify\\card\\ZKIDCardReader.exe')
+
+        subprocess.Popen('C:\\Users\\Gehen\\Desktop\\Face-Verify\\card\\ZKIDCardReader.exe')
 
 
 

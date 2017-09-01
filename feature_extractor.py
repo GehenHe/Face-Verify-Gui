@@ -51,7 +51,6 @@ class Extractor:
     def search_face(self,probe_fea,ID_feas,thresh=0.55):
         score_dict = {}
         person_list = ID_feas.keys()
-        person_list.sort()
         for person in person_list:
             ID_fea = ID_feas[person]
             temp_fea = np.concatenate((ID_fea,probe_fea),axis=0)
@@ -63,11 +62,6 @@ class Extractor:
             return temp_target
         else:
             return None
-
-
-
-            
-    
     
     def close(self):
         self.sess.close()
